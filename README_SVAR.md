@@ -35,6 +35,8 @@ AWS-nøklene ligger som Github Secrets, ikke i workflow filen.
 
 ### Oppgave 2A:
 
+![Health check](img.png)
+
 Offentlig URL til tjenesten: https://wi-6bb0bfedd0b24583a3268fb9f11580d0.ecs.eu-west-1.on.aws/api/health
 
 All infrastruktur som er nødvendig for tjenesten deklareres i `infra/`:
