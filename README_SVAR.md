@@ -42,3 +42,11 @@ All infrastruktur som er nødvendig for tjenesten deklareres i `infra/`:
 - `s3.tf`: bucket for lagring av bilder (`wishifai-images-16`). Miljøvariabelen `S3_BUCKET` settes automatisk fra denne i terraform-koden. 
 - `iam.tf`: For at tjenesten faktisk skal kunne kalle Rekognition, Bedrock og S3 trenger task-en en egen task role (ikke task execution role): `wishifai-task-role-16`, med bare tillatelsene appen trenger. 
 - `variables.tf` og `outputs.tf`: variablene er input (region, kandidatnummer, image_tag), og outputs er returverdiene (URL-en og bucket-navnet).
+
+### Oppgave 2B:
+
+Terraform-state lagres i den delte S3-bucketen `pgr301-terraform-state`, se `infra/backend.tf`.
+
+Valgt nøkkel: `wishifai/16/terraform.tfstate`
+
+`key` er stien til min state-fil inne i bucketen. Prefikset (`wishifai/16/`) skiller min state fra andre studenters. `use_lockfile = true` ber Terraform låse state via en lås-fil i selve S3-bucketen, slik at flere ikke kan endre samme infrastruktur samtidig.
