@@ -25,7 +25,7 @@ Lenke til grønn kjøring: [Github Actions-kjøring](https://github.com/Pauliusp
 
 Imaget pushes til ECR-repoet "wishifai-16" ved hver push til main
 
-**Tagging-strategi:** Imaget tagges med full commit-SHA (`github.sha`), se `.github/workflows/deploy.yaml` linje 37
+**Tagging-strategi:** Imaget tagges med full commit-SHA (`github.sha`), se `.github/workflows/deploy.yaml` linje 38
 
 Begrunnelse: Hver commit gir en unik tag, så jeg kan se nøyaktig hvilken commit som ligger bak imaget som kjører, for eksempel i ECR. `latest` blir overskrevet ved hvert bygg og sier ikke hvilken versjon som faktisk kjører.
 
@@ -52,3 +52,21 @@ Terraform-state lagres i den delte S3-bucketen `pgr301-terraform-state`, se `inf
 Valgt nøkkel: `wishifai/16/terraform.tfstate`
 
 `key` er stien til min state-fil inne i bucketen. Prefikset (`wishifai/16/`) skiller min state fra andre studenters. `use_lockfile = true` ber Terraform låse state via en lås-fil i selve S3-bucketen, slik at flere ikke kan endre samme infrastruktur samtidig.
+
+### Oppgave 2C:
+
+Lenke til grønn kjøring: [Github Actions-kjøring](https://github.com/Pauliuspcz/eksamen-2026/actions/runs/41498559736)
+
+![Actions-image](img_1.png)
+
+Workflowen `.github/workflows/deploy.yaml` har to jobber som kjører etter hverandre `build-push` -> `deploy`. 
+
+1. **build-push**: logger inn i ECR, bygger imaget og pusher det med commit-SHA (`github.sha`) som tag.
+
+2. **deploy**: (`needs: build-push`) kjører Terraform i `infra/` med den nye image-taggen, som ruller ECS-tjenesten over på det nye imaget.
+
+workflowen sjekker at formatteringen av koden er korrekt i henhold til HCL standard med `terraform fmt -check`. Er koden ikke formattert, feiler jobben før `terraform apply` kjører.
+
+**Hvorfor Terraform kjører etter container-build:** Imaget må finnes i ECR før Terraform ber ECS om å bruke det. Kjører Terraform før eller parallelt, kan tjenesten peke på en tag som ikke finnes ennå, og deployen feiler. Med `needs:` kjører `deploy` bare hvis `build-push` er grønn. Hvis bygget feiler, blir Terraform ikke kjørt, og tjenesten fortsetter å kjøre forrige versjon.
+
+AWS-nøklene hentes fra Github secrets på samme måte som i 1B
