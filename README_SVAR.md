@@ -70,3 +70,17 @@ workflowen sjekker at formatteringen av koden er korrekt i henhold til HCL stand
 **Hvorfor Terraform kjører etter container-build:** Imaget må finnes i ECR før Terraform ber ECS om å bruke det. Kjører Terraform før eller parallelt, kan tjenesten peke på en tag som ikke finnes ennå, og deployen feiler. Med `needs:` kjører `deploy` bare hvis `build-push` er grønn. Hvis bygget feiler, blir Terraform ikke kjørt, og tjenesten fortsetter å kjøre forrige versjon.
 
 AWS-nøklene hentes fra Github secrets på samme måte som i 1B
+
+## Oppgave 3
+
+### Oppgave 3A:
+
+Metrikkene sendes til CloudWatch i namespace `wishifai-16` (`MetricsConfig.java`)
+
+- `rekognition_latency` (Timer, `@Timed`): tiden det tar å kjøre Rekognition-kallet.
+- `bedrock_latency` (Timer, `@Timed`): tiden det tar å kjøre Bedrock-kallet.
+- `gift_suggestions` (Counter): antall gaveforslag generert.
+
+**Hvorfor:** Tjenesten svarer veldig langsomt, og timerne viser hvor tiden blir av. I CloudWatch tar Bedrock-kallet ca. 16 sekunder, mens Rekognition tar ca. 1 sekund, så det er Bedrock som gjør tjenesten treg.
+
+`gift_suggestions` er business-metrikken: den sier noe om bruken av tjenesten, ikke bare teknisk helse.
