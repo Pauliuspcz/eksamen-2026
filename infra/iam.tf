@@ -25,7 +25,7 @@ resource "aws_iam_role_policy" "task_policy" {
         Resource = "${aws_s3_bucket.images.arn}/*"
       },
       {
-        Action   = ["rekognition:DetectLabels", "bedrock:InvokeModel"],
+        Action   = ["rekognition:DetectLabels", "bedrock:InvokeModel", "cloudwatch:PutMetricData"],
         Effect   = "Allow",
         Resource = "*"
       }

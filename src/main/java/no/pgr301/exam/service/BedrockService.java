@@ -1,6 +1,7 @@
 package no.pgr301.exam.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.annotation.Timed;
 import no.pgr301.exam.model.GiftAnalysis;
 import no.pgr301.exam.model.GiftSuggestion;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ public class BedrockService {
      * @param labels
      * @return
      */
+    @Timed("bedrock_latency")
     public GiftAnalysis suggestGifts(List<String> labels) {
         String prompt = """
                 Du er en gaveassistent. Du får en liste med objekter som Rekognition
