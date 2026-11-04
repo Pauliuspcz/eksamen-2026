@@ -96,3 +96,34 @@ Dashboardet viser en miks av business-, infrastruktur- og applikasjonsmetrikker,
 Et kall tar ca. 18 sekunder, og ca. 16 av dem er Bedrock. CPU og minne er lave, så det er ikke ECS som gjør tjenesten treg.
 
 Alarmen går av når snittet for `bedrock_latency` er over 20 sekunder i 2 perioder på 60 sekunder. Jeg valgte Bedrock fordi det er det tregeste kallet, så det er her tjenesten blir tregere. Normalt tar kallet ca. 16 sekunder, så over 20 betyr at det er tregere enn vanlig. Med 2 perioder går ikke alarmen av på korte topper.
+
+## Oppgave 4
+
+Wishifai kan fungere helt teknisk og likevel gi dårlige svar. En LLM kan foreslå gaver som er farlige eller ikke passer for alderen,
+selv om tjenesten er "grønn". DevOps-prinsippene, som samarbeid, automatisering, kontinuerlig forbedring og overvåkning, er fortsatt viktige,
+men verktøyene vi bruker, som tester og alarmer, sjekker om tjenesten virker, ikke om svaret er riktig. Derfor må de tilpasses når man bruker generativ AI.
+
+Testing er en del av en typisk DevOps pipeline, men i min løsning bygges imaget med `-DskipTests`, 
+så en grønn kjøring sier ingenting om gavene gir mening. Vanlig automatisert testing forutsetter at samme input gir samme svar,
+men Bedrock kan gi forskjellige svar på samme bilde. I stedet kan man kjøre et fast sett med bilder, for eksempel de i `samples/`,
+og sjekke at svaret har riktig format og ikke inneholder gaver fra en forbudt-liste. Man kan også la en annen model vurdere svaret (LLM-as-judge),
+eller la tjenesten moderere seg selv, slik som Comprehend-sjekken i Bedrock-laben fra forelesningene. Slike tester bør kjøre før `deploy`-jobben,
+slik at ingenting kommer i prod før testene har passert. Ulempen er at en dommer-modell også er ikke-deterministisk og koster penger, så den fanger ikke alt.
+
+For kontinuerlig leveranse er spørsmålet hva man egentlig ruller ut. Prompten ligger i koden (`BedrockService.java`),
+så en endring får en ny SHA-tag og kan rulles tilbake som vanlig. Modellen velges derimot med miljøvariabelen `BEDROCK_MODEL_ID`,
+så den kan byttes uten nytt image. Da viser ikke taggen hva som faktisk kjører, og model-ID burde styres som infrastruktur som kode i Terraform.
+Med feature toggles kan både gammel og ny prompt ligge i koden, og en andel av brukerne får den nye gradvis. Går det dårlig, kan den slås av uten ny deploy,
+slik som i Unleash-øvingen.
+
+Overvåkning må også se på mer enn latency. Alarmen min fra 3B varsler bare når Bedrock er treg,
+og den ville vært grønn selv om Wishifai foreslo en kniv til en treåring. `gift_suggestions` teller hvor mange forslag som lages, men ikke om de er gode.
+Andre signaler for Wishifai kunne vært token-forbruk, siden prompten ber modellen tenke gjennom flere steg, og hvor ofte svaret ikke er gyldig JSON.
+ 
+Hvor strenge praksisene må være, avhenger av risikoen. I en gaveliste får en feil sjelden alvorlige konsekvenser, så de automatiske testene
+og overvåkning holder, og det er greit å oppdage noen feil i prod og rette dem raskt. Ved bankrådgivning eller medisinske råd holder ikke automatiske tester alene. Nye versjoner bør rulles ut gradvis,
+og prompt-endringer og modellbytte bør godkjennes av et menneske i en pull request. Når kunderådgiveren bruker AI-en, bør rådgiveren se over svaret
+før det når kunden, fordi det ikke er hensiktsmessig å automatisere alt.
+
+Jeg mener derfor at DevOps-praksisene fortsatt fungerer for en AI-tjeneste, men de må utvides. 
+Hvor strengt man gjør det, bør styres av konsekvensene av en feil.
