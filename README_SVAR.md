@@ -35,7 +35,7 @@ AWS-nøklene ligger som Github Secrets, ikke i workflow filen.
 
 ### Oppgave 2A:
 
-![Health check](img.png)
+![Health check](readme_images/img.png)
 
 Offentlig URL til tjenesten: https://wi-6bb0bfedd0b24583a3268fb9f11580d0.ecs.eu-west-1.on.aws/api/health
 
@@ -57,7 +57,7 @@ Valgt nøkkel: `wishifai/16/terraform.tfstate`
 
 Lenke til grønn kjøring: [Github Actions-kjøring](https://github.com/Pauliuspcz/eksamen-2026/actions/runs/41498559736)
 
-![Actions-image](img_1.png)
+![Actions-image](readme_images/img_1.png)
 
 Workflowen `.github/workflows/deploy.yaml` har to jobber som kjører etter hverandre `build-push` -> `deploy`. 
 
@@ -84,3 +84,15 @@ Metrikkene sendes til CloudWatch i namespace `wishifai-16` (`MetricsConfig.java`
 **Hvorfor:** Tjenesten svarer veldig langsomt, og timerne viser hvor tiden blir av. I CloudWatch tar Bedrock-kallet ca. 16 sekunder, mens Rekognition tar ca. 1 sekund, så det er Bedrock som gjør tjenesten treg.
 
 `gift_suggestions` er business-metrikken: den sier noe om bruken av tjenesten, ikke bare teknisk helse.
+
+### Oppgave 3B:
+
+Dashboard: `wishifai-16` (`infra/dashboard.tf`). Alarm: `wishifai-16-slow-bedrock` (`infra/alarm.tf`)
+
+![Dashboard](readme_images/img_2.png)
+
+Dashboardet viser en miks av business-, infrastruktur- og applikasjonsmetrikker, for å gi et helhetlig bilde av tjenesten. Business-metrikken er `gift_suggestions` fra 3A. Fra ECS Express viser jeg CPU og minne, og fra Spring Boot Actuator viser jeg HTTP request-latency for `/api/analyze`. Jeg har også lagt inn timerne for Bedrock og Rekognition fra 3A, for å se hvor tiden blir av.
+
+Et kall tar ca. 18 sekunder, og ca. 16 av dem er Bedrock. CPU og minne er lave, så det er ikke ECS som gjør tjenesten treg.
+
+Alarmen går av når snittet for `bedrock_latency` er over 20 sekunder i 2 perioder på 60 sekunder. Jeg valgte Bedrock fordi det er det tregeste kallet, så det er her tjenesten blir tregere. Normalt tar kallet ca. 16 sekunder, så over 20 betyr at det er tregere enn vanlig. Med 2 perioder går ikke alarmen av på korte topper.
