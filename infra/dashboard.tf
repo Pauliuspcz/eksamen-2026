@@ -15,7 +15,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         ],
         "period": 300,
         "stat": "Sum",
-        "region": "eu-west-1",
+        "region": "${var.region}",
         "title": "Gaveforslag generert"
       }
     },
@@ -32,7 +32,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         ],
         "period": 300,
         "stat": "Average",
-        "region": "eu-west-1",
+        "region": "${var.region}",
         "title": "Bedrock vs Rekognition (ms)"
       }
     },
@@ -49,7 +49,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         ],
         "period": 300,
         "stat": "Average",
-        "region": "eu-west-1",
+        "region": "${var.region}",
         "title": "ECS CPU og minne (%)"
       }
     },
@@ -65,7 +65,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         ],
         "period": 300,
         "stat": "Average",
-        "region": "eu-west-1",
+        "region": "${var.region}",
         "title": "HTTP latency /api/analyze (ms)"
       }
     }

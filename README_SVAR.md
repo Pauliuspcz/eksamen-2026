@@ -39,10 +39,10 @@ AWS-nøklene ligger som Github Secrets, ikke i workflow filen.
 
 Offentlig URL til tjenesten: https://wi-6bb0bfedd0b24583a3268fb9f11580d0.ecs.eu-west-1.on.aws/api/health
 
-All infrastruktur som er nødvendig for tjenesten deklareres i `infra/`:
-- `ecs.tf`: ECS Express-tjenesten. Express mode setter opp cluster, task-definisjon, service, application load balancer, target groups, security groups og auto-scaling for meg, slik at jeg kan gå fra et image i ECR til en offentlig URL uten å konfigurere hver komponent manuelt.
+Infrastrukturen for tjenesten deklareres i `infra/`:
+- `ecs.tf`: ECS Express-tjenesten. Express mode setter opp cluster, task-definisjon, service, application load balancer, target groups, security groups og auto-scaling for meg, slik at jeg kan gå fra et image i ECR til en offentlig URL uten å konfigurere hver komponent manuelt. Tjenesten bruker de to eksisterende rollene fra oppgaven.
 - `s3.tf`: bucket for lagring av bilder (`wishifai-images-16`). Miljøvariabelen `S3_BUCKET` settes automatisk fra denne i terraform-koden. 
-- `iam.tf`: For at tjenesten faktisk skal kunne kalle Rekognition, Bedrock og S3 trenger task-en en egen task role (ikke task execution role): `wishifai-task-role-16`, med bare tillatelsene appen trenger. 
+- `iam.tf`: task-rollen `wishifai-task-role-16`, med bare de handlingene appen bruker: `s3:PutObject` på bildebucketen, `rekognition:DetectLabels`, `bedrock:InvokeModel` og `cloudwatch:PutMetricData` (for metrikkene i 3A).
 - `variables.tf` og `outputs.tf`: variablene er input (region, kandidatnummer, image_tag), og outputs er returverdiene (URL-en og bucket-navnet).
 
 ### Oppgave 2B:
@@ -83,7 +83,8 @@ Metrikkene sendes til CloudWatch i namespace `wishifai-16` (`MetricsConfig.java`
 
 **Hvorfor:** Tjenesten svarer veldig langsomt, og timerne viser hvor tiden blir av. I CloudWatch tar Bedrock-kallet ca. 16 sekunder, mens Rekognition tar ca. 1 sekund, så det er Bedrock som gjør tjenesten treg.
 
-`gift_suggestions` er business-metrikken: den sier noe om bruken av tjenesten, ikke bare teknisk helse.
+`gift_suggestions` er business-metrikken. Jeg valgte den fordi gaveforslagene er det brukeren faktisk får ut av Wishifai,
+så den viser hvor mye tjenesten faktisk leverer, ikke bare om den svarer.
 
 ### Oppgave 3B:
 
